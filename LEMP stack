@@ -5,10 +5,13 @@
 # P = PHP
 
 # Prepare Linux (Centos 7)
-systemctl install -y open-vm-tools git wget unzip zip epel-release
-systemctl update -y
+yum install -y open-vm-tools git wget unzip zip epel-release
+yum update -y
 systemctl stop firewalld
 systemctl disable firewalld
+# turn off SELINUX
+#status SELINUX
+sestatus
 vi /etc/sysconfig/selinux
 # Edit line 7: SELINUX=disabled
 reboot
@@ -58,26 +61,26 @@ vi /etc/nginx/snippets/ssl.conf
         add_header X-Frame-Options SAMEORIGIN;
         add_header X-Content-Type-Options nosniff;
 
-vi /etc/nginx/conf.d/kbuor.website.conf (replace kbuor.website by your domain)
+vi /etc/nginx/conf.d/thanhlpi.website.conf (replace kbuor.website by your domain)
 
         # Add the content bellow: (replace kbuor.website by your domain)
         server {
           listen 80;
-          server_name kbuor.website www.kbuor.website;
+          server_name thanhlpi.website www.thanhlpi.website;
 
           include snippets/letsencrypt.conf;
         }
  
  sudo systemctl reload nginx
- sudo certbot certonly --agree-tos --email admin@kbuor.website --webroot -w /var/lib/letsencrypt/ -d kbuor.website -d www.kbuor.website
+ sudo certbot certonly --agree-tos --email admin@thanhlpi.website --webroot -w /var/lib/letsencrypt/ -d thanhlpi.website -d www.thanhlpi.website
  (replace kbuor.website by your domain)
  
- vi /etc/nginx/conf.d/kbuor.website.conf (replace kbuor.website by your domain)
+ vi /etc/nginx/conf.d/thanhlpi.website.conf (replace kbuor.website by your domain)
  
  # Add the content bellow: (replace kbuor.website by your domain)
          server {
             listen 80;
-            server_name www.kbuor.website kbuor.website;
+            server_name www.thanhlpi.website thanhlpi.website;
 
             include snippets/letsencrypt.conf;
             return 301 https://$host$request_uri;
@@ -85,24 +88,24 @@ vi /etc/nginx/conf.d/kbuor.website.conf (replace kbuor.website by your domain)
 
         server {
             listen 443 ssl http2;
-            server_name www.kbuor.website;
+            server_name www.thanhlpi.website;
 
-            ssl_certificate /etc/letsencrypt/live/kbuor.website/fullchain.pem;
-            ssl_certificate_key /etc/letsencrypt/live/kbuor.website/privkey.pem;
-            ssl_trusted_certificate /etc/letsencrypt/live/kbuor.website/chain.pem;
+            ssl_certificate /etc/letsencrypt/live/thanhlpi.website/fullchain.pem;
+            ssl_certificate_key /etc/letsencrypt/live/thanhlpi.website/privkey.pem;
+            ssl_trusted_certificate /etc/letsencrypt/live/thanhlpi.website/chain.pem;
             include snippets/ssl.conf;
             include snippets/letsencrypt.conf;
 
-            return 301 https://kbuor.website$request_uri;
+            return 301 https://thanhlpi.website$request_uri;
         }
 
         server {
             listen 443 ssl http2;
-            server_name kbuor.website;
+            server_name thanhlpi.website;
 
-            ssl_certificate /etc/letsencrypt/live/kbuor.website/fullchain.pem;
-            ssl_certificate_key /etc/letsencrypt/live/kbuor.website/privkey.pem;
-            ssl_trusted_certificate /etc/letsencrypt/live/kbuor.website/chain.pem;
+            ssl_certificate /etc/letsencrypt/live/thanhlpi.website/fullchain.pem;
+            ssl_certificate_key /etc/letsencrypt/live/thanhlpi.website/privkey.pem;
+            ssl_trusted_certificate /etc/letsencrypt/live/thanhlpi.website/chain.pem;
             include snippets/ssl.conf;
             include snippets/letsencrypt.conf;
         }
