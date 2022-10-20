@@ -1,0 +1,158 @@
+# LAMP Stack with Wordpress
+# L = Linux Ubuntu 22.04
+# A = Apache
+# M = MySQL 8
+# P = PHP 8
+
+# Prepare Ubuntu
+sudo apt install -y open-vm-tools
+sudo apt update -y
+sudo apt upgrade -y
+
+# Install Apache
+sudo apt install -y apache2
+sudo systemctl start apache2
+sudo systemctl enable apache2
+
+# Secure Apache with Let's Encrypt
+sudo apt install certbot python3-certbot-apache
+sudo vi /etc/apache2/sites-available/thanhlpi.website.conf (Replace kbuor.website by your domain)
+
+        # Add the content bellow, replace thanhlpi.website by your domain
+        <VirtualHost *:80>
+          ServerName thanhlpi.website
+          ServerAlias www.thanhlpi.website
+
+          ServerAdmin admin@thanhlpi.website
+          DocumentRoot /var/www/html
+
+          ErrorLog ${APACHE_LOG_DIR}/error.log
+          CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+        </VirtualHost
+        
+sudo apache2ctl configtest
+sudo certbot --apache
+
+# Install MySQL Server
+sudo apt install mysql-server
+sudo mysql (Login by LINUX ROOT USER PASSWORD)
+> ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password by '3@1234.5678'; (replace P@ssw0rd by your password for SQL Root Password)
+> EXIT;
+sudo mysql_secure_installation (login by MYSQL ROOT PASSWORD)
+sudo mysql -u root -p (login by MYSQL ROOT PASSWORD)
+> CREATE DATABASE wordpress DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
+> CREATE USER 'wpuser'@'%' IDENTIFIED WITH mysql_native_password BY 'P@ssw0rd';
+> GRANT ALL ON wordpress.* TO 'wpuser'@'%';
+> FLUSH PRIVILEGES;
+> EXIT;
+
+
+# Install PHP
+sudo apt update -y
+sudo apt install php libapache2-mod-php php-mysql
+sudo apt install php-curl php-gd php-mbstring php-xml php-xmlrpc php-soap php-intl php-zip -y
+sudo systemctl restart apache2
+
+# Download Wordpress
+sudo mkdir -p /var/www/thanhlpi.website
+cd /tmp
+curl -O https://wordpress.org/latest.tar.gz
+tar xzvf latest.tar.gz
+cp /tmp/wordpress/wp-config-sample.php /tmp/wordpress/wp-config.php
+mkdir /tmp/wordpress/wp-content/upgrade
+sudo cp -a /tmp/wordpress/. /var/www/thanhlpi.website/
+sudo chown -R www-data:www-data /var/www/thanhlpi.website/
+sudo find /var/www/thanhlpi.website/ -type d -exec chmod 750 {} \;
+sudo find /var/www/thanhlpi.website/ -type f -exec chmod 640 {} \;
+curl -s https://api.wordpress.org/secret-key/1.1/salt/
+
+# Copy all information, example bellow (DO NOT COPY THIS VALUE, JUST COPY YOUR VALUE!!!!):
+
+        define('AUTH_KEY',         'fLx>*,FYhGJlJ-ye)ts%w@L#S=q|VU-.#0hm)TsZD>lKHv:131B4 @jR{+AmjqgX');
+        define('SECURE_AUTH_KEY',  '1OQMN?fG-}=!Gk:2NkD12h/J1P5R71PJgC<ylaPa+?/g<e<0X_YSc=AtcP*IHAIy');
+        define('LOGGED_IN_KEY',    '3Sv,UVT[hxEJS!-M|!-)X9yRpG|05-]W~++}PM1N;t=.rb$lx.@Wz8!kCEq&g*>l');
+        define('NONCE_KEY',        '>RJ,9v}:>|Cy OgDl)DyG$]1)$TFjfsL$TY3+<Gxj9AFI&FpjxA3+(mcm4_kwn O');
+        define('AUTH_SALT',        '=Wx0];L~Jy+ hw)3WR>[{3;[z2eogp=~Mq9kF@-{6IG7S8MVTii[&mW$J@QNnzad');
+        define('SECURE_AUTH_SALT', 'z&=_)Wc<:au{Ld!yA)Wf66|7!VAH`o}4Lv[vPA}$^-BF`nBh0Jo?Geyo<VltN3,H');
+        define('LOGGED_IN_SALT',   '/Cec!xnqe; qkRCV5w I`QiQkAmRs+?JXFj;A]1/+H;j_eV7^Y$Kjyr:Dun9??so');
+        define('NONCE_SALT',       ' B:}5-LvElyGtlEA?!7JtV)3B5QS|9>5E,ME}QpE.7xnSsXKAE5M{&K(Cx [Gw[!');
+
+sudo vi /var/www/thanhlpi.website/wp-config.php
+
+# Replace  those line by copied value (Line 51 - 58):
+
+        define('AUTH_KEY',         'VALUES COPIED FROM THE COMMAND LINE');
+        define('SECURE_AUTH_KEY',  'VALUES COPIED FROM THE COMMAND LINE');
+        define('LOGGED_IN_KEY',    'VALUES COPIED FROM THE COMMAND LINE');
+        define('NONCE_KEY',        'VALUES COPIED FROM THE COMMAND LINE');
+        define('AUTH_SALT',        'VALUES COPIED FROM THE COMMAND LINE');
+        define('SECURE_AUTH_SALT', 'VALUES COPIED FROM THE COMMAND LINE');
+        define('LOGGED_IN_SALT',   'VALUES COPIED FROM THE COMMAND LINE');
+        define('NONCE_SALT',       'VALUES COPIED FROM THE COMMAND LINE');
+
+# Edit line 23, 26, 29 by your infor:
+
+       21 // ** Database settings - You can get this info from your web host ** //
+       22 /** The name of the database for WordPress */
+       23 define( 'DB_NAME', 'wordpress' );
+       24
+       25 /** Database username */
+       26 define( 'DB_USER', 'wpuser' );
+       27
+       28 /** Database password */
+       29 define( 'DB_PASSWORD', 'P@ssw0rd' );
+       30
+       31 /** Database hostname */
+       32 define( 'DB_HOST', 'localhost' );
+
+
+
+# Configure Apache Virtual host
+sudo vi /etc/apache2/sites-available/thanhlpi.website.conf (Replace kbuor.website by your domain)
+      
+          # Add the content bellow, replace kbuor.website by your domain
+          <VirtualHost *:80>
+            ServerName thanhlpi.website
+            ServerAlias www.thanhlpi.website
+
+            Redirect permanent / https://thanhlpi.website/
+          </VirtualHost>
+
+          <VirtualHost *:443>
+            ServerName thanhlpi.website
+            ServerAlias www.thanhlpi.website
+
+            Protocols h2 http/1.1
+
+            <If "%{HTTP_HOST} == 'www.thanhlpi.website'">
+              Redirect permanent / https://thanhlpi.website/
+            </If>
+
+            DirectoryIndex index.html index.php
+            DocumentRoot /var/www/thanhlpi.website
+
+            ErrorLog ${APACHE_LOG_DIR}/thanhlpi.website-error.log
+            CustomLog ${APACHE_LOG_DIR}/thanhlpi.website-access.log combined
+
+            SSLEngine On
+            SSLCertificateFile /etc/letsencrypt/live/thanhlpi.website/cert.pem
+            SSLCertificateKeyFile /etc/letsencrypt/live/thanhlpi.website/privkey.pem
+            SSLCertificateChainFile /etc/letsencrypt/live/thanhlpi.website/chain.pem
+
+            <Directory /var/www/thanhlpi.website>
+                Options FollowSymLinks
+                AllowOverride All
+                Require all granted
+            </Directory>
+
+          </VirtualHost>
+
+
+sudo a2ensite thanhlpi.website
+sudo systemctl restart apache2
+
+
+
+
+
