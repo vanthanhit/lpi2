@@ -142,7 +142,9 @@ ipa-server-install --setup-dns
                       These files are required to create replicas. The password for these
                       files is the Directory Manager password
 
+#create ticket
 kinit admin
 klist
+
 ipa config-mod --defaultshell=/bin/bash
 
